@@ -158,3 +158,20 @@ def get_operator_default_parameters(operator):
         parameters[param.getName()] = param.getDefaultValue()
     
     return parameters
+
+def get_operator_help(op):
+    
+        op_spi = GPF.getDefaultInstance().getOperatorSpiRegistry().getOperatorSpi(op)
+        
+        print('Operator name: {}'.format(op_spi.getOperatorDescriptor().getName()))
+        
+        print('Operator alias: {}\n'.format(op_spi.getOperatorDescriptor().getAlias()))
+        print('Parameters:\n')
+        param_Desc = op_spi.getOperatorDescriptor().getParameterDescriptors()
+        
+        for param in param_Desc:
+            print('{}: {}\nDefault Value: {}\n'.format(param.getName(),
+                                                       param.getDescription(),
+                                                       param.getDefaultValue()))
+            
+            print('Possible values: {}\n').format(list(param.getValueSet()))
