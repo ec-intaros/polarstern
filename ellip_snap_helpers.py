@@ -5,7 +5,7 @@ import tempfile
 import time
 import psutil
 import os
-
+import snappy 
 from snappy import GPF
 
 class GraphProcessor():
@@ -162,6 +162,71 @@ def get_operator_default_parameters(operator):
 def get_operator_help(op):
     
         op_spi = GPF.getDefaultInstance().getOperatorSpiRegistry().getOperatorSpi(op)
+        
+        print('Operator name: {}'.format(op_spi.getOperatorDescriptor().getName()))
+        
+        print('Operator alias: {}\n'.format(op_spi.getOperatorDescriptor().getAlias()))
+        print('Parameters:\n')
+        param_Desc = op_spi.getOperatorDescriptor().getParameterDescriptors()
+        
+        for param in param_Desc:
+            print('{}: {}\nDefault Value: {}\n'.format(param.getName(),
+                                                       param.getDescription(),
+                                                       param.getDefaultValue()))
+            
+            print('Possible values: {}\n').format(list(param.getValueSet()))
+            
+            
+def backscatter(**kwargs):
+   
+    options = dict()
+    
+    operators = ['Read', 
+                 'ThermalNoiseRemoval', 
+                 'Apply-Orbit-File',
+                 'Calibration',
+                 'Speckle-Filter',
+                 'Multilook',
+                 'LinearToFromdB',
+                 'Terrain-Correction',
+                 'Subset',
+                 'Write']
+    
+    for operator in operators:
+            
+        print 'Getting default values for Operator {}'.format(operator)
+        parameters = get_operator_default_parameters(operator)
+        
+        options[operator] = parameters
+
+    for key, value in kwargs.items():
+        
+        print 'Updating Operator {}'.format(key)
+        options[key.replace('_', '-')].update(value)
+    
+    mygraph = GraphProcessor()
+    
+    for index, operator in enumerate(operators):
+    
+        print 'Adding Operator {} to graph'.format(operator)
+        if index == 0:            
+            source_node_id = ''
+        
+        else:
+            source_node_id = operators[index - 1]
+        
+        mygraph.add_node(operator,
+                         operator, 
+                         options[operator], source_node_id)
+    
+    mygraph.view_graph()
+    
+    mygraph.run()
+    
+    
+def op_help(op):
+    
+        op_spi = snappy.GPF.getDefaultInstance().getOperatorSpiRegistry().getOperatorSpi(op)
         
         print('Operator name: {}'.format(op_spi.getOperatorDescriptor().getName()))
         
